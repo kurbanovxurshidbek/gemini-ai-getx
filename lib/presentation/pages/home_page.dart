@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ngdemo28/core/services/log_service.dart';
@@ -41,30 +43,40 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 Expanded(
-                  child: Container(
-                    margin: EdgeInsets.all(15),
-                    child: _controller.messages.isNotEmpty
-                        ? ListView.builder(
-                            itemCount: _controller.messages.length,
-                            itemBuilder: (context, index) {
-                              var message = _controller.messages[index];
-                              if (message.isMine!) {
-                                return itemOfUserMessage(message);
-                              } else {
-                                return itemOfGeminiMessage(message);
-                              }
-                            },
-                          )
-                        : Center(
-                            child: SizedBox(
-                              height: 80,
-                              width: 80,
-                              child:
-                                  Image.asset('assets/images/gemini_icon.png'),
+                    child: Stack(
+                  children: [
+                    Container(
+                      margin: EdgeInsets.all(15),
+                      child: _controller.messages.isNotEmpty
+                          ? ListView.builder(
+                        controller: _controller.scrollController,
+                              itemCount: _controller.messages.length,
+                              itemBuilder: (context, index) {
+                                var message = _controller.messages[index];
+                                if (message.isMine!) {
+                                  return itemOfUserMessage(message);
+                                } else {
+                                  return itemOfGeminiMessage(message);
+                                }
+                              },
+                            )
+                          : Center(
+                              child: SizedBox(
+                                height: 80,
+                                width: 80,
+                                child: Image.asset(
+                                    'assets/images/gemini_icon.png'),
+                              ),
                             ),
-                          ),
-                  ),
-                ),
+                    ),
+
+                    _controller.isLoading
+                        ? Center(
+                            child: CircularProgressIndicator(),
+                          )
+                        : SizedBox.shrink(),
+                  ],
+                )),
                 Container(
                   margin: const EdgeInsets.only(right: 20, left: 20),
                   padding: const EdgeInsets.only(left: 20),
@@ -73,7 +85,49 @@ class _HomePageState extends State<HomePage> {
                     border: Border.all(color: Colors.grey, width: 1.5),
                   ),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      _controller.pickedImage64.isNotEmpty
+                          ? Stack(
+                              children: [
+                                Container(
+                                  margin: EdgeInsets.all(10),
+                                  width: 70,
+                                  height: 70,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: Colors.white),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Image.memory(
+                                      base64Decode(_controller.pickedImage64),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                    margin: EdgeInsets.all(10),
+                                    width: 70,
+                                    height: 70,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(color: Colors.white),
+                                    ),
+                                    child: Center(
+                                      child: IconButton(
+                                        onPressed: () {
+                                          _controller.removePickedImage();
+                                        },
+                                        icon: Icon(
+                                          Icons.clear,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    )),
+                              ],
+                            )
+                          : SizedBox.shrink(),
                       Row(
                         children: [
                           Expanded(
@@ -89,7 +143,9 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                           IconButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              _controller.pickImageFromGallery();
+                            },
                             icon: Icon(
                               Icons.attach_file,
                               color: Colors.grey,

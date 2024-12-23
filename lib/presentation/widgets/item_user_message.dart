@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import '../../data/models/message_model.dart';
@@ -21,12 +23,22 @@ Widget itemOfUserMessage(MessageModel message) {
         ),
         child: Expanded(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 message.message!,
                 style: TextStyle(
                     color: Color.fromRGBO(173, 173, 176, 1), fontSize: 16),
-              )
+              ),
+              (message.base64 != null && message.base64!.isNotEmpty)
+                  ? Container(
+                      margin: EdgeInsets.only(top: 16, bottom: 6),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.memory(base64Decode(message.base64!)),
+                      ),
+                    )
+                  : SizedBox.shrink(),
             ],
           ),
         ),
